@@ -2,87 +2,71 @@
 
 // Initialize Firebase
 var config = {
-  apiKey: "AIzaSyDxQqkGa3AKrcGmGVFalJe40g4hdzADf6w",
-  authDomain: "coder-bay-views.firebaseapp.com",
-  databaseURL: "https://coder-bay-views.firebaseio.com",
-  storageBucket: "coder-bay-views.appspot.com"
-};
-
-firebase.initializeApp(config);
+    apiKey: "AIzaSyB88vMLvX7VuNKOpaBRk1VK_PmxNeC8N-s",
+    authDomain: "rock-paper-scissors-a3fd9.firebaseapp.com",
+    databaseURL: "https://rock-paper-scissors-a3fd9.firebaseio.com",
+    projectId: "rock-paper-scissors-a3fd9",
+    storageBucket: "rock-paper-scissors-a3fd9.appspot.com",
+    messagingSenderId: "55635400532"
+  };
+  firebase.initializeApp(config);
 
 // Create a variable to reference the database.
 var database = firebase.database();
 
 // -----------------------------
 
-// connectionsRef references a specific location in our database.
-// All of our connections will be stored in this directory.
-var connectionsRef = database.ref("/connections");
 
-// '.info/connected' is a special location provided by Firebase that is updated
-// every time the client's connection state changes.
-// '.info/connected' is a boolean value, true if the client is connected and false if they are not.
-var connectedRef = database.ref(".info/connected");
-
-// When the client's connection state changes...
-connectedRef.on("value", function(snap) {
-
-  // If they are connected..
-  if (snap.val()) {
-
-    // Add user to the connections list.
-    var con = connectionsRef.push(true);
-    // Remove user from the connection list when they disconnect.
-    con.onDisconnect().remove();
-  }
-});
-
-// When first loaded or when the connections list changes...
-connectionsRef.on("value", function(snap) {
-
-  // Display the viewer count in the html.
-  // The number of online users is the number of children in the connections list.
-  $("#connected-viewers").html(snap.numChildren());
-});
 
 // ------------------------------------
 // Global variables
+var numPlayers = 0;
+var playerRef;
+
 var user1 = "";
 var user2 = "";
 
 
 // --------------------------------------------------------------
-// Whenever a user clicks the click button
-$("#submitName").on("click", function(event) {
-  event.preventDefault();
+$(document).ready(function() {
 
-  // Get the input values
-  var user1 = $("#bidder-name").val().trim();
-  //var user2 = parseInt($("#bidder-price").val().trim());
+  $("#nameInputButton").on("click", function(event) {
+    event.preventDefault();
+    var name = $.trim($("input[name='nameInput']").val());
 
-  // Log the Bidder and Price (Even if not the highest)
-  console.log(submitName);
-  //console.log(bidderPrice);
+    if (name !== '')
+    {
+      if (numPlayers < 2)
+      {
+        numPlayers++;
+        //Greet Player (local change)
+        $("#banner").empty();
+        $("#banner").append("<h2 id='greeting'>Hello, " + name + ", you're player " + numPlayers + ".</h2>");
+        $("#banner").append("<h2 id='gameMessage' class='displayNone'></h2>");
 
-      // Save the new price in Firebase
-    database.ref("user1").push({
-      // highBidder: bidderName,
-      // highPrice: bidderPrice
-    });
+        //write status message to chat node indicating player has joined
+        database.ref("chat").push(
+        {
+          playerName: name,
+          playerNumber: 0,  //0 here indicates it's a status message
+          message: name + " has joined the game."
+        });
 
-    // Log the new High Price
-    console.log(user1);
-   // console.log(bidderPrice);
+        //Create players node, add player to it. 
+        playerRef = database.ref("players").push(
+        {
+          name: name,
+          wins: 0,
+          losses: 0,
+          playerNumber: numPlayers
+        });
 
+console.log(name);
+        //setup onDisconnect now that playerRef is defined
+        playerRef.onDisconnect().remove();
+        // console.log("playerRef key: " + playerRef.key);
 
-
-    // Change the HTML to reflect the new high price and bidder
-    $(".userName1").html("<strong>Name: "+ user1 + "</strong>");
-  //  $("#highest-price").html("$" + bidderPrice);
-
-});
-
-
+}}
 
 // -------------------------------------------------------------- (CRITICAL - BLOCK) --------------------------- //
 // connectionsRef references a specific location in our database.
@@ -121,51 +105,60 @@ connectionsRef.on("value", function(snap) {
 var initialValue = 100;
 var clickCounter = initialValue;
 
-// At the initial load, get a snapshot of the current data.
-database.ref("/clicks").on("value", function(snapshot) {
+// // At the initial load, get a snapshot of the current data.
+// database.ref("/clicks").on("value", function(snapshot) {
 
-  // Print the initial data to the console.
-  console.log(snapshot.val());
+//   // Print the initial data to the console.
+//   console.log(snapshot.val());
 
-  // Change the html to reflect the initial value.
-  $("#click-value").html(snapshot.val().clickCount);
+//   // Change the html to reflect the initial value.
+//   $("#click-value").html(snapshot.val().clickCount);
 
-  // Change the clickcounter to match the data in the database
-  clickCounter = snapshot.val().clickCount;
+//   // Change the clickcounter to match the data in the database
+//   clickCounter = snapshot.val().clickCount;
 
-  // Log the value of the clickCounter
-  console.log(clickCounter);
+//   // Log the value of the clickCounter
+//   console.log(clickCounter);
 
-  // Change the HTML Value
-  $("#click-value").html(clickCounter);
+//   // Change the HTML Value
+//   $("#click-value").html(clickCounter);
 
-// If any errors are experienced, log them to console.
-}, function(errorObject) {
-  console.log("The read failed: " + errorObject.code);
-});
+// // If any errors are experienced, log them to console.
+// }, function(errorObject) {
+//   console.log("The read failed: " + errorObject.code);
+// });
 
 // --------------------------------------------------------------
 
 // Whenever a user clicks the click-button
 $("#click-button").on("click", function() {
+event.preventDefault();
+  comment = $("#comment-input").val().trim(); 
 
-  // Reduce the clickCounter by 1
-  clickCounter--;
-
-  // Alert User and reset the counter
-  if (clickCounter === 0) {
-    alert("Phew! You made it! That sure was a lot of clicking.");
-    clickCounter = initialValue;
-  }
-
-  // Save new value to Firebase
-  database.ref("/clicks").set({
-    clickCount: clickCounter
-  });
+database.ref().push({
+        comment: comment
+      });
 
   // Log the value of clickCounter
-  console.log(clickCounter);
+  console.log(comment);
 });
+
+
+  // Firebase watcher + initial loader HINT: .on("value")
+    database.ref().on("value", function(snapshot) {
+
+      // Log everything that's coming out of snapshot
+      console.log(snapshot.val().comment);
+
+      // Change the HTML to reflect
+      $("#comment-display").html(snapshot.val().comment);
+
+      // Handle the errors
+    }, function(errorObject) {
+      console.log("Errors handled: " + errorObject.code);
+    });
+
+
 
 // Whenever a user clicks the restart button
 $("#restart-button").on("click", function() {
