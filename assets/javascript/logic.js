@@ -15,10 +15,6 @@ var config = {
 var database = firebase.database();
 
 // -----------------------------
-
-
-
-// ------------------------------------
 // Global variables
 var numPlayers = 0;
 var playerRef;
@@ -27,8 +23,8 @@ var user1 = "";
 var user2 = "";
 
 
-// --------------------------------------------------------------
-$(document).ready(function() {
+// -----------------------------------------------------
+$(document).ready(function(event) {
 
   $("#nameInputButton").on("click", function(event) {
     event.preventDefault();
@@ -39,6 +35,7 @@ $(document).ready(function() {
       if (numPlayers < 2)
       {
         numPlayers++;
+        
         //Greet Player (local change)
         $("#banner").empty();
         $("#banner").append("<h2 id='greeting'>Hello, " + name + ", you're player " + numPlayers + ".</h2>");
@@ -131,16 +128,18 @@ var clickCounter = initialValue;
 // --------------------------------------------------------------
 
 // Whenever a user clicks the click-button
-$("#click-button").on("click", function() {
+$("#sendMessage").on("click", function(event) {
 event.preventDefault();
-  comment = $("#comment-input").val().trim(); 
+  message = $("#messageInput").val().trim(); 
 
 database.ref().push({
-        comment: comment
+        message: message
       });
 
-  // Log the value of clickCounter
-  console.log(comment);
+  // Log the message
+  console.log(message);
+  //change html toinclude message
+ $("#messageDisplay").append("<li>" + message + "</li>").html(snapshot.val().message);
 });
 
 
